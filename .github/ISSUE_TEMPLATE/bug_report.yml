@@ -1,0 +1,47 @@
+name: Bug report
+description: Something doesn't work as documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Security problems: please use [private reporting](https://github.com/MattA-Official/vwmcp/security/advisories/new) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `vwmcp doctor`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: script
+    attributes:
+      label: Script or tool call (if relevant)
+      description: The `run_python` code or tool arguments involved, cut down to the smallest version that still fails.
+      render: python
+  - type: input
+    id: vwmcp
+    attributes:
+      label: vwmcp version
+      placeholder: "vwmcp --version"
+    validations:
+      required: true
+  - type: input
+    id: vectorworks
+    attributes:
+      label: Vectorworks version, product and language
+      placeholder: "2027 SP0, Spotlight, English"
+    validations:
+      required: true
+  - type: input
+    id: client
+    attributes:
+      label: MCP client
+      placeholder: "Claude Desktop 2.x"

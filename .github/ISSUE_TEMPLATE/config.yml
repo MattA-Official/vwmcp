@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/MattA-Official/vwmcp/discussions
+    about: Ask and discuss in GitHub Discussions.
+  - name: Troubleshooting guide
+    url: https://github.com/MattA-Official/vwmcp/blob/main/docs/how-to/troubleshoot.md
+    about: Common problems and fixes.

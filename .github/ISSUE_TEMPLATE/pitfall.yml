@@ -1,0 +1,28 @@
+name: Vectorworks API pitfall
+description: A vs.* call that silently fails, hangs, crashes or has changed.
+labels: ["pitfall"]
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: Symptom
+      placeholder: "vs.Foo returns None and nothing is drawn"
+    validations:
+      required: true
+  - type: textarea
+    id: script
+    attributes:
+      label: Minimal script
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: What works instead
+  - type: input
+    id: vectorworks
+    attributes:
+      label: Vectorworks version and language
+    validations:
+      required: true
