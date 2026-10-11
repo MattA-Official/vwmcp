@@ -7,5 +7,6 @@ mod trigger;
 mod win;
 mod bridge;
 mod docs;
+mod library;
 
 fn main() {}
