@@ -3,6 +3,9 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Or start it from the Actions tab: it releases the version in Cargo.toml
+  # from main and creates the tag.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -14,14 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
-      - name: Check the tag matches Cargo.toml
+      - name: Work out the tag
+        id: tag
         shell: bash
         run: |
           version=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match Cargo.toml version $version" >&2
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+              echo "Tag $GITHUB_REF_NAME does not match Cargo.toml version $version" >&2
+              exit 1
+            fi
+          elif [ "$GITHUB_REF_NAME" != main ]; then
+            echo "Run releases from main, not $GITHUB_REF_NAME" >&2
             exit 1
           fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
       - run: cargo test
       - run: cargo build --release
       - name: Package
@@ -33,7 +44,7 @@ jobs:
       - name: Extract release notes
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          version="${{ steps.tag.outputs.version }}"
           awk -v v="$version" '
             $0 ~ "^## \\[" v "\\]" { found = 1; next }
             found && /^## \[/ { exit }
@@ -42,6 +53,9 @@ jobs:
           test -s notes.md || { echo "No CHANGELOG.md entry for $version" >&2; exit 1; }
       - uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: vwmcp ${{ steps.tag.outputs.version }}
           body_path: notes.md
           files: |
             dist/vwmcp.exe
