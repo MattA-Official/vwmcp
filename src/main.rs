@@ -8,5 +8,6 @@ mod win;
 mod bridge;
 mod docs;
 mod library;
+mod server;
 
 fn main() {}
