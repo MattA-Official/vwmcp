@@ -6,5 +6,6 @@ mod trigger;
 #[cfg(windows)]
 mod win;
 mod bridge;
+mod docs;
 
 fn main() {}
