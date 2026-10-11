@@ -5,5 +5,6 @@ mod paths;
 mod trigger;
 #[cfg(windows)]
 mod win;
+mod bridge;
 
 fn main() {}
