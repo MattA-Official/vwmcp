@@ -10,5 +10,6 @@ mod docs;
 mod library;
 mod server;
 mod vwreg;
+mod install;
 
 fn main() {}

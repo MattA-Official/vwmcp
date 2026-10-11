@@ -551,6 +551,98 @@ pub(crate) fn downscale_bgra_to_rgb(
     (nw, nh, out)
 }
 
+/// Add (`add = true`) or remove `dir` from the current user's PATH, so
+/// `vwmcp` works in new terminals. Returns whether anything changed.
+pub fn set_user_path_entry(dir: &std::path::Path, add: bool) -> anyhow::Result<bool> {
+    use windows::Win32::Foundation::ERROR_FILE_NOT_FOUND;
+    use windows::Win32::System::Registry::{
+        HKEY, HKEY_CURRENT_USER, KEY_READ, KEY_WRITE, REG_EXPAND_SZ, REG_VALUE_TYPE, RegCloseKey,
+        RegOpenKeyExW, RegQueryValueExW, RegSetValueExW,
+    };
+    use windows::Win32::UI::WindowsAndMessaging::{HWND_BROADCAST, WM_SETTINGCHANGE};
+    use windows::core::w;
+
+    let dir = dir.to_string_lossy().trim_end_matches('\\').to_string();
+    unsafe {
+        let mut key = HKEY::default();
+        RegOpenKeyExW(
+            HKEY_CURRENT_USER,
+            w!("Environment"),
+            None,
+            KEY_READ | KEY_WRITE,
+            &mut key,
+        )
+        .ok()?;
+        let result = (|| -> anyhow::Result<bool> {
+            let mut kind = REG_VALUE_TYPE::default();
+            let mut len = 0u32;
+            let rc = RegQueryValueExW(key, w!("Path"), None, Some(&mut kind), None, Some(&mut len));
+            let current = if rc == ERROR_FILE_NOT_FOUND {
+                String::new()
+            } else {
+                rc.ok()?;
+                let mut buf = vec![0u16; (len as usize).div_ceil(2) + 1];
+                RegQueryValueExW(
+                    key,
+                    w!("Path"),
+                    None,
+                    Some(&mut kind),
+                    Some(buf.as_mut_ptr().cast()),
+                    Some(&mut len),
+                )
+                .ok()?;
+                let end = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+                String::from_utf16_lossy(&buf[..end])
+            };
+            let entries: Vec<&str> = current
+                .split(';')
+                .filter(|s| !s.trim().is_empty())
+                .collect();
+            let present = entries
+                .iter()
+                .any(|e| e.trim_end_matches('\\').eq_ignore_ascii_case(&dir));
+            let new: Vec<&str> = match (add, present) {
+                (true, false) => entries
+                    .iter()
+                    .copied()
+                    .chain(std::iter::once(dir.as_str()))
+                    .collect(),
+                (false, true) => entries
+                    .iter()
+                    .copied()
+                    .filter(|e| !e.trim_end_matches('\\').eq_ignore_ascii_case(&dir))
+                    .collect(),
+                _ => return Ok(false),
+            };
+            let value: Vec<u16> = new
+                .join(";")
+                .encode_utf16()
+                .chain(std::iter::once(0))
+                .collect();
+            let bytes = std::slice::from_raw_parts(value.as_ptr().cast::<u8>(), value.len() * 2);
+            // Keep the original type (usually REG_EXPAND_SZ, so %VARS% still expand).
+            let ty = if kind.0 == 0 { REG_EXPAND_SZ } else { kind };
+            RegSetValueExW(key, w!("Path"), None, ty, Some(bytes)).ok()?;
+            Ok(true)
+        })();
+        let _ = RegCloseKey(key);
+        let changed = result?;
+        if changed {
+            let mut out = 0usize;
+            SendMessageTimeoutW(
+                HWND_BROADCAST,
+                WM_SETTINGCHANGE,
+                WPARAM(0),
+                LPARAM(w!("Environment").as_ptr() as isize),
+                SMTO_ABORTIFHUNG,
+                1000,
+                Some(&mut out),
+            );
+        }
+        Ok(changed)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::is_error_title;
