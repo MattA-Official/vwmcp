@@ -12,7 +12,7 @@ jobs:
     name: Build and publish
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - name: Check the tag matches Cargo.toml
         shell: bash
@@ -40,7 +40,7 @@ jobs:
             found { print }
           ' CHANGELOG.md > notes.md
           test -s notes.md || { echo "No CHANGELOG.md entry for $version" >&2; exit 1; }
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           body_path: notes.md
           files: |
