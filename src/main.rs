@@ -9,5 +9,6 @@ mod bridge;
 mod docs;
 mod library;
 mod server;
+mod vwreg;
 
 fn main() {}
