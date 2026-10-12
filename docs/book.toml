@@ -1,0 +1,13 @@
+[book]
+title = "vwmcp documentation"
+authors = ["Matt Adcock"]
+language = "en"
+src = "."
+
+[preprocessor.mermaid]
+command = "mdbook-mermaid"
+
+[output.html]
+git-repository-url = "https://github.com/MattA-Official/vwmcp"
+edit-url-template = "https://github.com/MattA-Official/vwmcp/edit/main/docs/{path}"
+additional-js = ["mermaid.min.js", "mermaid-init.js"]
