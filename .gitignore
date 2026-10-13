@@ -1,4 +1,6 @@
 /target
 /docs/book/
+/docs/mermaid.min.js
+/docs/mermaid-init.js
 __pycache__/
 *.pyc

@@ -3,8 +3,18 @@ name: Documentation
 on:
   push:
     branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs.yml"
   pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -15,15 +25,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@stable
       - name: Install mdBook and Mermaid preprocessor
-        run: |
-          cargo install mdbook --version 0.4.52 --locked
-          cargo install mdbook-mermaid --version 0.15.0 --locked
-          mdbook-mermaid install docs
+        uses: taiki-e/install-action@v2
+        with:
+          tool: mdbook@0.4.52,mdbook-mermaid@0.15.0
+      - name: Prepare Mermaid assets
+        run: mdbook-mermaid install docs
       - name: Build documentation
         run: mdbook build docs
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name != 'pull_request'
         with:
           path: docs/book
 

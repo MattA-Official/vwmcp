@@ -42,6 +42,16 @@ cargo build --release --target x86_64-pc-windows-gnu
 
 Use a scratch document. If you change the Python under `python/`, the server redeploys it on start and Vectorworks reloads it on the next job, so you don't need to restart Vectorworks.
 
+### Previewing the documentation site
+
+Install [mdBook](https://rust-lang.github.io/mdBook/) 0.4.52 and [mdbook-mermaid](https://github.com/badboy/mdbook-mermaid) 0.15.0, then run:
+
+```sh
+mdbook-mermaid install docs && mdbook serve docs
+```
+
+Open the local URL printed by mdBook in your browser. The Mermaid assets and generated book output are created locally and are not committed.
+
 ## Project layout
 
 | Path | |
